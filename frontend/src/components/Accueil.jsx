@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import './Accueil.css';
+import { searchMovie, generateAIResponse } from '../services/api';
+import { showAllRecommendations, insertRecommendation, deleteRecommendation as deleteFromDb } from '../services/crud';
 
 
 const Accueil = () => {
@@ -44,50 +46,50 @@ const Accueil = () => {
 
     const chercher = async () => {
         if (category === "movies") {
-            
+            const data = await searchMovie(movie);
+            setSuggestedMovies(data.results || []);
         } else {
-            
+            // recipe search not yet implemented
         }
     }
 
     const genererReponse = async () => {
-        setIsGenerating();
+        setIsGenerating(true);
         try {
-            let params;
             let response;
             if (category === "movies") {
-                
-                setSelectedMovies();
-                setSuggestedMovies();
+                response = await generateAIResponse({ selectedMovies, mood, watchTime, watchWith });
+                setSelectedMovies([]);
+                setSuggestedMovies([]);
             } else {
-                params = { selectedRecipes: JSON.stringify(selectedRecipes), diet, timeAvailable, budget, skillLevel, cookingFor };
-                response = 
-                setSelectedRecipes();
-                setSuggestedRecipes();
+                response = await generateAIResponse({ selectedMovies: selectedRecipes, mood: diet, watchTime: timeAvailable, watchWith: cookingFor });
+                setSelectedRecipes([]);
+                setSuggestedRecipes([]);
             }
-            setAiResponse();
+            const text = response?.response?.choices?.[0]?.message?.content || '';
+            setAiResponse(text);
         } finally {
-            setIsGenerating();
+            setIsGenerating(false);
         }
     }
 
     const handleSelect = (title, checked) => {
         if (category === "movies") {
-            if (checked) setSelectedMovies([]);
-            else setSelectedMovies();
+            if (checked) setSelectedMovies([...selectedMovies, title]);
+            else setSelectedMovies(selectedMovies.filter((t) => t !== title));
         } else {
-            if (checked) setSelectedRecipes([]);
-            else setSelectedRecipes();
+            if (checked) setSelectedRecipes([...selectedRecipes, title]);
+            else setSelectedRecipes(selectedRecipes.filter((t) => t !== title));
         }
     };
 
     const sauvegarderRecommendation = async () => {
         switch (category) {
             case "movies":
-                
+                await sauvegarderFilmRecommendation();
                 break;
             case "recipes":
-                
+                await sauvegarderRecetteRecommendation();
                 break;
             default:
                 console.error("Unknown category:", category);
@@ -95,23 +97,23 @@ const Accueil = () => {
     }
 
     const sauvegarderFilmRecommendation = async () => {
-        
-        setSavedFilms();
+        const data = { category: 'movies', title: selectedMovies.join(', '), mood, watchTime, watchWith, aiSuggestion: aiResponse };
+        const result = await insertRecommendation(data);
+        setSavedFilms((prev) => [...prev, result.result]);
     }
 
     const sauvegarderRecetteRecommendation = async () => {
-        setSavedRecipes();
-        setSavedFilms();
+        const data = { category: 'recipes', title: selectedRecipes.join(', '), diet, timeAvailable, budget, skillLevel, cookingFor, aiSuggestion: aiResponse };
+        const result = await insertRecommendation(data);
+        setSavedRecipes((prev) => [...prev, result.result]);
     }
 
     const deleteRecommendation = async (id) => {
-        
+        await deleteFromDb(id);
         if (category === "movies") {
-
-            setSavedFilms();
+            setSavedFilms((prev) => prev.filter((f) => f._id !== id));
         } else {
-
-            setSavedRecipes();
+            setSavedRecipes((prev) => prev.filter((r) => r._id !== id));
         }
     }
 
