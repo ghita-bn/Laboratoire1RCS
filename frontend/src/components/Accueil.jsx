@@ -42,7 +42,9 @@ const Accueil = () => {
 
     
     const [aiResponse, setAiResponse] = useState("");
+    const [aiError, setAiError] = useState("");
     const [isGenerating, setIsGenerating] = useState(false);
+    const [generatedTitle, setGeneratedTitle] = useState("");
 
     const chercher = async () => {
         if (category === "movies") {
@@ -55,19 +57,29 @@ const Accueil = () => {
 
     const genererReponse = async () => {
         setIsGenerating(true);
+        setAiError("");
         try {
             let response;
             if (category === "movies") {
+                setGeneratedTitle(selectedMovies.join(', '));
                 response = await generateAIResponse({ selectedMovies, mood, watchTime, watchWith });
                 setSelectedMovies([]);
                 setSuggestedMovies([]);
             } else {
+                setGeneratedTitle(selectedRecipes.join(', '));
                 response = await generateAIResponse({ selectedMovies: selectedRecipes, mood: diet, watchTime: timeAvailable, watchWith: cookingFor });
                 setSelectedRecipes([]);
                 setSuggestedRecipes([]);
             }
             const text = response?.response?.choices?.[0]?.message?.content || '';
-            setAiResponse(text);
+            if (!text) {
+                const errMsg = response?.response?.error?.message || 'Aucune réponse reçue du modèle IA.';
+                setAiError(errMsg);
+            } else {
+                setAiResponse(text);
+            }
+        } catch (error) {
+            setAiError(error.message || 'Erreur lors de la génération.');
         } finally {
             setIsGenerating(false);
         }
@@ -97,13 +109,13 @@ const Accueil = () => {
     }
 
     const sauvegarderFilmRecommendation = async () => {
-        const data = { category: 'movies', title: selectedMovies.join(', '), mood, watchTime, watchWith, aiSuggestion: aiResponse };
+        const data = { category: 'movies', title: generatedTitle, mood, watchTime, watchWith, aiSuggestion: aiResponse };
         const result = await insertRecommendation(data);
         setSavedFilms((prev) => [...prev, result.result]);
     }
 
     const sauvegarderRecetteRecommendation = async () => {
-        const data = { category: 'recipes', title: selectedRecipes.join(', '), diet, timeAvailable, budget, skillLevel, cookingFor, aiSuggestion: aiResponse };
+        const data = { category: 'recipes', title: generatedTitle, diet, timeAvailable, budget, skillLevel, cookingFor, aiSuggestion: aiResponse };
         const result = await insertRecommendation(data);
         setSavedRecipes((prev) => [...prev, result.result]);
     }
@@ -253,6 +265,8 @@ const Accueil = () => {
                                     <div className="loader-spinner"></div>
                                     <p className="loader-text">Génération en cours...</p>
                                 </div>
+                            ) : aiError ? (
+                                <div className="ai-response" style={{borderColor:'#ef4444',color:'#fca5a5'}}>⚠️ {aiError}</div>
                             ) : aiResponse.length > 0 ? (
                                 <div className="ai-response">{aiResponse}</div>
                             ) : (

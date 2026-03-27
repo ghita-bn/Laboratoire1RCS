@@ -1,10 +1,5 @@
 const axios = require('axios');
 
-
-
-    
-  
-
 async function searchMovies(query) {
   try {
     const response = await axios.get('http://www.omdbapi.com/', {
