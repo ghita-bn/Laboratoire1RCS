@@ -30,7 +30,17 @@ async function searchMovies(query) {
 async function searchRecipes(query) {
 
   try {
-    
+    const response = await axios.get(
+            "https://api.spoonacular.com/food/ingredients/autocomplete",
+            {
+                params: {
+                    query: query,
+                    apiKey: '1d8523018d654b9695c52290fe53f446'
+                }
+            }
+        );
+
+        return response.data;
   } catch (error) {
     console.error('Spoonacular search error:', error.message);
     return [];
