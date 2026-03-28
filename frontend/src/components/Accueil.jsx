@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import './Accueil.css';
 import { searchMovie, generateAIResponse } from '../services/api';
+import { searchRecipe, generateAIResponseForRecipes } from '../services/api';
 import { showAllRecommendations, insertRecommendation, deleteRecommendation as deleteFromDb } from '../services/crud';
 
 
@@ -51,7 +52,8 @@ const Accueil = () => {
             const data = await searchMovie(movie);
             setSuggestedMovies(data.results || []);
         } else {
-            // recipe search not yet implemented
+           const data = await searchRecipe(recipe);
+        setSuggestedRecipes(data.results || []);
         }
     }
 
