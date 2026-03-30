@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { searchMovies } = require('../services/apiSearcher');
+const { searchMovies, searchRecipes } = require('../services/apiSearcher');
 
 router.get('/movie', async (req, res) => {
   try {
@@ -18,8 +18,9 @@ router.get('/movie', async (req, res) => {
 
 router.get('/recipe', async (req, res) => {
   try {
-    
-
+    const { q } = req.query;
+    const results = await searchRecipes(q);
+    res.json({ results });
   } catch (error) {
     console.error('Search error:', error);
     res.status(500).json({

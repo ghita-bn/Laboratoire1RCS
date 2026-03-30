@@ -5,7 +5,7 @@ async function searchMovies(query) {
     const response = await axios.get('http://www.omdbapi.com/', {
       params: {
         s: query,  
-        apikey: '8c37a790', 
+        apikey: '2839d7fb', 
         type: 'movie'
       
       },
@@ -28,19 +28,18 @@ async function searchMovies(query) {
 }
 
 async function searchRecipes(query) {
-
   try {
     const response = await axios.get(
-            "https://api.spoonacular.com/food/ingredients/autocomplete",
-            {
-                params: {
-                    query: query,
-                    apiKey: '1d8523018d654b9695c52290fe53f446'
-                }
-            }
-        );
-
-        return response.data;
+      "https://api.spoonacular.com/recipes/autocomplete",
+      {
+        params: {
+          query: query,
+          number: 10,
+          apiKey: '1d8523018d654b9695c52290fe53f446'
+        }
+      }
+    );
+    return response.data.map(r => ({ id: r.id, name: r.title }));
   } catch (error) {
     console.error('Spoonacular search error:', error.message);
     return [];

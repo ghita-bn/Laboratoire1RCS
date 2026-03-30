@@ -5,11 +5,11 @@ async function queryAIGenerator(query) {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: 'Bearer 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',
+        Authorization: 'Bearer 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',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-4o',
+        model: 'openai/gpt-4o-mini',
         messages: [
           {
             role: 'user',
